@@ -36,6 +36,10 @@ export default function Dashboard() {
   }
 
   const { kpis, history, forecast, segments } = data;
+  const formatAmount = (value) =>
+   Math.round(value).toLocaleString() + " €";
+  const formatPercent = (value) =>
+   Math.round(value) + " %";
 
   return (
     <main className="min-h-screen bg-gray-100 text-gray-900">
@@ -112,12 +116,12 @@ export default function Dashboard() {
                 <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <KPICard
                     title="Total 2024"
-                    value={kpis.total_2024.toLocaleString() + " €"}
+                    value={Math.round(kpis.total_2024).toLocaleString() + " €"}
                     accent="blue"
                   />
                   <KPICard
                     title="Total prédit 2025"
-                    value={kpis.total_forecast.toLocaleString() + " €"}
+                    value={Math.round(kpis.total_forecast).toLocaleString() + " €"}
                     accent="orange"
                   />
                   <KPICard
