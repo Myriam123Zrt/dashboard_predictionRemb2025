@@ -7,24 +7,40 @@ import PredictionLineChart from "./components/LineChart";
 import ErrorBarChart from "./components/BarChart";
 import AnomalyTable from "./components/AnomalyTable";
 import Loader from "./components/Loader";
+import FamilleBarChart from "./components/FamilleBarChart";
+import SexeBarChart from "./components/SexeBarChart";
+import AgeBarChart from "./components/AgeBarChart";
 
-// ⬇⬇⬇ NOUVELLE LIGNE ICI
+
+// URL API locale ou déployée
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-// ⬆⬆⬆
 
 export default function Dashboard() {
   const [currentTab, setCurrentTab] = useState("Synthèse");
   const [histYear, setHistYear] = useState(2024);
   const [data, setData] = useState(null);
 
+  // 📌 Charger /predict + /details
   useEffect(() => {
-    axios
-      .get(`${API_URL}/predict`, {
-        params: { hist_year: histYear },
-      })
-      .then((res) => setData(res.data))
-      .catch((err) => console.error(err));
+    async function load() {
+      try {
+        const pred = await axios.get(`${API_URL}/predict`, {
+          params: { hist_year: histYear },
+        });
+
+        const details = await axios.get(`${API_URL}/details`);
+
+        setData({
+          ...pred.data,
+          details: details.data,
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    load();
   }, [histYear]);
 
   if (!data) {
@@ -36,14 +52,17 @@ export default function Dashboard() {
   }
 
   const { kpis, history, forecast, segments } = data;
+
   const formatAmount = (value) =>
-   Math.round(value).toLocaleString() + " €";
+    Math.round(value).toLocaleString() + " €";
+
   const formatPercent = (value) =>
-   Math.round(value) + " %";
+    Math.round(value) + " %";
 
   return (
     <main className="min-h-screen bg-gray-100 text-gray-900">
       <div className="max-w-7xl mx-auto py-8 px-6">
+
         {/* HEADER */}
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -88,8 +107,9 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* LAYOUT AVEC SIDEBAR GAUCHE */}
+        {/* LAYOUT AVEC SIDEBAR */}
         <div className="mt-6 flex gap-6">
+
           {/* SIDEBAR */}
           <aside className="w-56 flex-shrink-0 bg-white border border-gray-200 rounded-2xl p-4 space-y-2">
             {["Synthèse", "Analyse", "Modèle"].map((tab) => (
@@ -110,18 +130,20 @@ export default function Dashboard() {
 
           {/* CONTENU PRINCIPAL */}
           <section className="flex-1 space-y-6">
+
+            {/* ------------ onglet Synthèse ------------ */}
             {currentTab === "Synthèse" && (
               <>
                 {/* KPI */}
                 <section className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <KPICard
                     title="Total 2024"
-                    value={Math.round(kpis.total_2024).toLocaleString() + " €"}
+                    value={formatAmount(kpis.total_2024)}
                     accent="blue"
                   />
                   <KPICard
                     title="Total prédit 2025"
-                    value={Math.round(kpis.total_forecast).toLocaleString() + " €"}
+                    value={formatAmount(kpis.total_forecast)}
                     accent="orange"
                   />
                   <KPICard
@@ -137,22 +159,32 @@ export default function Dashboard() {
                   />
                 </section>
 
-                {/* COURBES HISTORIQUE + PREVISION */}
+                {/* COURBES */}
                 <section>
                   <PredictionLineChart history={history} forecast={forecast} />
                 </section>
               </>
             )}
 
+            {/* ------------ onglet Analyse ------------ */}
             {currentTab === "Analyse" && (
-              <section>
+              <section className="space-y-6">
                 <ErrorBarChart data={segments.mape_by_segment} />
+
+                {/* ➜ Chart Famille d'acte */}
+                <FamilleBarChart data={data.details.famille} />
+                
+                <SexeBarChart data={data.details.sexe} />
+
+                <AgeBarChart data={data.details.age} />
+
               </section>
             )}
 
+            {/* ------------ onglet Modèle ------------ */}
             {currentTab === "Modèle" && (
               <section className="space-y-4">
-                <div className="bg-white rounded-2xl p-4Shadow-sm border border-gray-200">
+                <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
                   <h2 className="font-semibold mb-1">
                     Qualité modèle — résumé
                   </h2>
@@ -170,6 +202,7 @@ export default function Dashboard() {
                 <AnomalyTable rows={segments.anomalies} />
               </section>
             )}
+
           </section>
         </div>
       </div>
