@@ -19,10 +19,10 @@ app.add_middleware(
 CSV_PATH = "TestConso.csv"
 
 # === NOUVEAUX FICHIERS QUE TU AS FOURNIS ===
-CSV_REAL = "consommation reelle.csv"
-CSV_FAMILLE = "consommation par famille d'acte.csv"
-CSV_SEXE = "consommation par sexe.csv"
-CSV_AGE = "consommation par tranche d'age.csv"
+CSV_REELLE = "backend/consommation reelle.csv"
+CSV_FAMILLE = "backend/consommation par famille d'acte.csv"
+CSV_SEXE = "backend/consommation par sexe.csv"
+CSV_AGE = "backend/consommation par tranche d'age.csv"
 
 
 def load_data():
@@ -112,7 +112,7 @@ def predict(hist_year: int = 2024, forecast_steps: int = 12):
 # -------------------------------------------------------
 @app.get("/details")
 def details():
-    real = pd.read_csv(CSV_REAL)
+    real = pd.read_csv(CSV_REELLE)
     famille = pd.read_csv(CSV_FAMILLE)
     sexe = pd.read_csv(CSV_SEXE)
     age = pd.read_csv(CSV_AGE)
